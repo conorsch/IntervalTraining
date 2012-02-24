@@ -1,11 +1,12 @@
 #!/usr/bin/perl
 #script to facilitate learning of musical intervals. plays two intervals at random (within two octave range) and tests the user
-#use strict;
+use strict;
 use warnings;
 use Getopt::Std; #Allow for command line argument parsing;
 use threads; #Necessary to allow playing of chords (multiple notes simultaneously);
 use threads::shared; #Necessary to allow threads to inherit variables from elsewhere in script;
 
+my @dependencies = qw/sox/; #List out all package dependencies here, to check before running actual script;
 my %Options=(); #Create hash for command-line options
 getopts('hvd:r:c:', \%Options); #See do_help for explanation of these flags;
 my $chord = $Options{c} || 2; #Allow user to set number of notes to analyze; default is 2;
@@ -35,7 +36,23 @@ if ($verbose == 1) { #If verbose is enabled, then provide feedback about other f
     print "Notes will be selected from a range of $range octaves.\n";
     print "Up to $chord notes will be sounded together simultaneously.\n";
 }
+sub check_dependencies {
+    foreach my $package (@dependencies) {
+        my $result = system("which $package"); #Necessary to use system() rather than backticks so exit code is grabbed properly;
+        if ($result == 0) { #Exit code of 0 means program is reported as installed.
+            print "It appears that the package $package is installed! Continuing...\n" if ($verbose == 1);
+            next;
+        }
+        else {
+            die "Unsatisfied dependency. Please make sure you have the $package package installed.\nExiting...\n";
+        }
+    }
+}
+
 my @letters = ("A".."G"); #Initialize array of standard musical notation letters, A through G
+my @flats = qw/Bb Db Eb Gb Ab/;
+#my @sharps = qw/A# C# D# F# G#/;
+my @sharps = ("A#", "C#", "D#", "F#", "G#"); #Not using quick qw/ declaration because use::strict warns about possible comments;
 my @octaves = (1..7); #Select possible range of octaves for tone generation; "range" flag adjusts this
 my @allnotes; #Could be useful to have an array of all possible notes and draw from that for generate_note;
 
@@ -72,4 +89,5 @@ sub interval_test {
         sleep 5; #Rest a moment before repeating;
     }
 }
-interval_test;
+check_dependencies; #Let's make sure the script can run;
+interval_test; #Run the meat of the script to do the test;
