@@ -39,20 +39,19 @@ if ($verbose == 1) { #If verbose is enabled, then provide feedback about other f
 sub check_dependencies {
     foreach my $package (@dependencies) {
         my $result = system("which $package"); #Necessary to use system() rather than backticks so exit code is grabbed properly;
-        if ($result == 0) { #Exit code of 0 means program is reported as installed.
+        if ($result == 0) { #Exit code of 0 means program is reported as installed;
             print "It appears that the package $package is installed! Continuing...\n" if ($verbose == 1);
-            next;
+            next; #Move onto checking next package in list of dependencies;
         }
         else {
             die "Unsatisfied dependency. Please make sure you have the $package package installed.\nExiting...\n";
         }
     }
 }
-
 my @letters = ("A".."G"); #Initialize array of standard musical notation letters, A through G
-my @flats = qw/Bb Db Eb Gb Ab/;
-#my @sharps = qw/A# C# D# F# G#/;
-my @sharps = ("A#", "C#", "D#", "F#", "G#"); #Not using quick qw/ declaration because use::strict warns about possible comments;
+my @flats = qw/Bb Db Eb Gb Ab/; #Initialize array of flats, for use
+#my @sharps = qw/A# C# D# F# G#/; #Not using quick qw/ declaration because use::strict warns about possible comments;
+my @sharps = ("A#", "C#", "D#", "F#", "G#"); #Initialize array of sharp notations, for a little variety;
 my @octaves = (1..7); #Select possible range of octaves for tone generation; "range" flag adjusts this
 my @allnotes; #Could be useful to have an array of all possible notes and draw from that for generate_note;
 
@@ -67,8 +66,28 @@ sub play_note {
     my $note = shift; #Grab desired note from function call, name it accordingly;
     `play -q -n synth $duration pluck $note`; #Play it by calling "play" shell command (requires sox);
 }
+sub determine_interval {
+    my @notes = @{(shift)}; #Wacky shift packaging necessary to handle array supplied during function call;
+    my $total = int $#notes; #Store total number of notes
+    if ($total == 1) {
+        print "There was only one note sounded, therefore no interval can be defined. The note was $ARGV[0].\n";
+    }
+    elsif ($total == 2) {
+        foreach my $note (@notes) {
+            my $letter =~ m/^\w{1}/;
+            my $octave =~ m/\d{1}$/;
+            print "My letter is: $letter\n";
+            print "My octave for this note is: $octave\n";
+        }
+    }
+    else {
+        print "Something went awry in determine_interval\n";
+    }
+
+}
 sub interval_test {
     my @chord; #Initialize array to store all notes we'll generate;
+    my 
     my $octave = $octaves[int rand($#octaves)]; #Find random octave in our set; range flag will deviate from this value;
 #   print "Inside interval test, the randomly generated octave was: $octave\n";
     foreach my $note (1..$chord) {
@@ -80,13 +99,14 @@ sub interval_test {
             print "Playing single note $note...\n";
             play_note($note); #Play single note from chord;
         }
-        if ($chord > 1) {
+        if ($chord > 1) { #If number of notes is plural, then prepare to sound all notes simultaneously;
             print "Playing chord of all notes.. (@chord).\n";
             foreach my $note (@chord) {
                 threads->create(\&play_note,$note); #Thread necessary to play different notes simultaneously;
             }
         }
         sleep 5; #Rest a moment before repeating;
+        determine
     }
 }
 check_dependencies; #Let's make sure the script can run;
