@@ -2,6 +2,7 @@
 #script to facilitate learning of musical intervals. plays two intervals at random (within two octave range) and tests the user
 use strict;
 use warnings;
+#use diagnostics;
 use Getopt::Std; #Allow for command line argument parsing;
 use threads; #Necessary to allow playing of chords (multiple notes simultaneously);
 use threads::shared; #Necessary to allow threads to inherit variables from elsewhere in script;
@@ -54,6 +55,29 @@ my @flats = qw/Bb Db Eb Gb Ab/; #Initialize array of flats, for use
 my @sharps = ("A#", "C#", "D#", "F#", "G#"); #Initialize array of sharp notations, for a little variety;
 my @octaves = (1..7); #Select possible range of octaves for tone generation; "range" flag adjusts this
 my @allnotes; #Could be useful to have an array of all possible notes and draw from that for generate_note;
+push(@allnotes,@letters);
+push(@allnotes,@sharps);
+my @allnotes_sorted = sort {lc($a) cmp lc($b) } @allnotes;
+my %intervals = (
+        0 => "root",
+        1 => "minor second",
+        2 => "major second",
+        3 => "minor third",
+        4 => "major third",
+        5 => "perfect four",
+        6 => "tritone",
+        7 => "perfect fifth",
+        8 => "minor sixth",
+        9 => "major sixth",
+        10 => "minor seventh",
+        11 => "major seventh",
+        12 => "octave",
+        );
+
+#sort(@allnotes);
+print "This is the content of ALLNOTES: @allnotes\n" if ($verbose == 1); 
+print "This is the content of ALLNOTES_SORTED: @allnotes_sorted\n" if ($verbose == 1); 
+
 
 sub generate_note {
     my $letter = $letters[int rand($#letters)]; #Find random letter by plugging in a random value no greater than array size
@@ -63,37 +87,50 @@ sub generate_note {
     return $note; #Pass generated note to whatever called it, for use in play_note;
 }
 sub play_note {
+
     my $note = shift; #Grab desired note from function call, name it accordingly;
     `play -q -n synth $duration pluck $note`; #Play it by calling "play" shell command (requires sox);
 }
 sub determine_interval {
+    print "Now determining interval of notes...\n" if ($verbose == 1);
     my @notes = @{(shift)}; #Wacky shift packaging necessary to handle array supplied during function call;
-    my $total = int $#notes; #Store total number of notes
+    my $total = scalar(@notes); #Store total number of notes;
     if ($total == 1) {
-        print "There was only one note sounded, therefore no interval can be defined. The note was $ARGV[0].\n";
+        print "There was only one note sounded, therefore no interval can be defined. The note was @notes.\n";
     }
     elsif ($total == 2) {
-        foreach my $note (@notes) {
-            my $letter =~ m/^\w{1}/;
-            my $octave =~ m/\d{1}$/;
+        print "There were $total notes sounded, which were: @notes\n" if ($verbose == 1);
+        my @distances; #going to need this in a moment;
+        my @notes_semitones;
+        my @letters_only;
+        foreach my $note (@notes::determine_interval) { #Necessary to declare parent subroutine for proper scope;
+            chomp $note; #Don't think chomp is necessary, but doesn't hurt. Will determine later;
+            my $letter = $1 if ($note =~ /^\w{1-2}/); #Grab first one or two characters (so A as well as A# is found);
+            my $octave = $1 if ($note =~ /\d{1}$/); #Grab final number, which designates octave frequency
             print "My letter is: $letter\n";
             print "My octave for this note is: $octave\n";
+            push @letters_only,$letter;
         }
+        foreach my $letter (@letters_only) {
+            my $semitone = $intervals{$letter};
+            print "The semitone value of the note $letter (from A) is: $semitone\n" if ($verbose == 1);
+        }
+
     }
     else {
-        print "Something went awry in determine_interval\n";
+        print "Something went awry while determining the interval between these notes: @notes\n";
     }
 
 }
 sub interval_test {
     my @chord; #Initialize array to store all notes we'll generate;
-    my 
     my $octave = $octaves[int rand($#octaves)]; #Find random octave in our set; range flag will deviate from this value;
 #   print "Inside interval test, the randomly generated octave was: $octave\n";
     foreach my $note (1..$chord) {
         $note = generate_note($octave);
         push @chord,$note;
     }
+    determine_interval(\@chord);
     while (1) { #Loop indefinitely until user declares stop;
         foreach my $note (@chord) { #Look at all generated notes in our "chord" array;
             print "Playing single note $note...\n";
@@ -106,7 +143,6 @@ sub interval_test {
             }
         }
         sleep 5; #Rest a moment before repeating;
-        determine
     }
 }
 check_dependencies; #Let's make sure the script can run;
