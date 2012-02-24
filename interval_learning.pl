@@ -9,12 +9,13 @@ use threads::shared; #Necessary to allow threads to inherit variables from elsew
 
 my @dependencies = qw/sox/; #List out all package dependencies here, to check before running actual script;
 my %Options=(); #Create hash for command-line options
-getopts('hvd:r:c:', \%Options); #See do_help for explanation of these flags;
+getopts('hbvd:r:c:', \%Options); #See do_help for explanation of these flags;
 my $chord = $Options{c} || 2; #Allow user to set number of notes to analyze; default is 2;
 my $verbose = $Options{v} || 0; #Make the script give more feedback;
 my $duration = $Options{d} || 1; #Choose how long individual tones are sounded for; default to 1 second 
-my $range = $Options{r} || undef; #Determine how far apart notes can be, within a range of r octave(s);
+my $range = $Options{r} || 1; #Determine how far apart notes can be, within a range of r octave(s);
 my $help = $Options{h} || 0; #If -h flag is declared, show help info (which ends in exit);
+my $debugging = $Options{b} || 0; #If -b flag is declared, enable debugging mode (more verbose);
 
 sub do_help { #Display usage information;
     print
@@ -26,6 +27,7 @@ Options supported are as follows:
     -d      duration, choose how long notes ring (in seconds)
     -r      range, how far apart the notes can be, within a range of r octave(s)
     -c      chord, how many notes sound be sounded (defaults to 2)
+    -b      debugging, extra verbose output for troubleshooting functionality
 \n";
     die "Exiting...\n"; #Close out, so user can rerun script with desired functionality;
 }
@@ -38,6 +40,7 @@ if ($verbose == 1) { #If verbose is enabled, then provide feedback about other f
     print "Up to $chord notes will be sounded together simultaneously.\n";
 }
 sub check_dependencies {
+    print "Now entering check_dependencies subroutine...\n" if ($debugging == 1);
     foreach my $package (@dependencies) {
         my $result = system("which $package"); #Necessary to use system() rather than backticks so exit code is grabbed properly;
         if ($result == 0) { #Exit code of 0 means program is reported as installed;
@@ -75,11 +78,12 @@ my %intervals = (
         );
 
 #sort(@allnotes);
-print "This is the content of ALLNOTES: @allnotes\n" if ($verbose == 1); 
-print "This is the content of ALLNOTES_SORTED: @allnotes_sorted\n" if ($verbose == 1); 
+print "This is the content of ALLNOTES: @allnotes\n" if ($debugging == 1); 
+print "This is the content of ALLNOTES_SORTED: @allnotes_sorted\n" if ($debugging == 1); 
 
 
 sub generate_note {
+    print "Now entering generate_note subroutine...\n" if ($debugging == 1);
     my $letter = $letters[int rand($#letters)]; #Find random letter by plugging in a random value no greater than array size
     my $octave = shift || $octaves[int rand($#octaves)]; #If octave declared, use it, else find random letter by plugging in a random value no greater than array size
 #    print "Inside gen_note, octave pulled from func call is $octave\n" if ($verbose == 1);
@@ -92,37 +96,52 @@ sub play_note {
     `play -q -n synth $duration pluck $note`; #Play it by calling "play" shell command (requires sox);
 }
 sub determine_interval {
-    print "Now determining interval of notes...\n" if ($verbose == 1);
+    print "Now entering determine_interval subroutine...\n" if ($debugging == 1);
     my @notes = @{(shift)}; #Wacky shift packaging necessary to handle array supplied during function call;
     my $total = scalar(@notes); #Store total number of notes;
-    if ($total == 1) {
-        print "There was only one note sounded, therefore no interval can be defined. The note was @notes.\n";
-    }
-    elsif ($total == 2) {
-        print "There were $total notes sounded, which were: @notes\n" if ($verbose == 1);
-        my @distances; #going to need this in a moment;
-        my @notes_semitones;
-        my @letters_only;
-        foreach my $note (@notes::determine_interval) { #Necessary to declare parent subroutine for proper scope;
-            chomp $note; #Don't think chomp is necessary, but doesn't hurt. Will determine later;
-            my $letter = $1 if ($note =~ /^\w{1-2}/); #Grab first one or two characters (so A as well as A# is found);
-            my $octave = $1 if ($note =~ /\d{1}$/); #Grab final number, which designates octave frequency
-            print "My letter is: $letter\n";
-            print "My octave for this note is: $octave\n";
-            push @letters_only,$letter;
-        }
+#if ($total == 1) {
+#        print "There was only one note sounded, therefore no interval can be defined. The note was @notes.\n";
+#    }
+#    elsif ($total == 2) {
+    print "A total of $total notes will be played, specifically: @notes\n" if ($verbose == 1);
+    my @distances; #going to need this in a moment;
+    my @notes_semitones;
+    my @letters_only;
+    print "Notes from main scope looks like this: @notes::determine_interval\n" if ($debugging == 1);
+    print "Notes from main scope looks like this: @notes\n" if ($debugging == 1);
+    foreach my $note (@notes) { #Necessary to declare parent subroutine for proper scope;
+        print "Notes from main scope looks like this: @notes::determine_interval\n" if ($debugging == 1);
+        print "Notes from main scope looks like this: @notes\n";
+        print "
+            
+            WE ARE NOW INSIDE that troublesome foreach loop in determine_interval! Hurray!
+            
+            
+            
+            
+            WHAT TH EHELL?!??!\n";
+        my $letter = $1 if ($note =~ /^\w{1-2}/); #Grab first one or two characters (so A as well as A# is found);
+        my $octave = $1 if ($note =~ /\d{1}$/); #Grab final number, which designates octave frequency
+        print "My letter is: $letter\n";
+        print "My octave for this note is: $octave\n";
+        push @letters_only,$letter;
+        print "Letters_only is looking like this: @letters_only\n" if ($debugging == 1);
         foreach my $letter (@letters_only) {
+            print "Letters_only is looking like this: @letters_only\n" if ($debugging == 1);
+            print "Now entering letters_only list (@letters_only)...\n";
             my $semitone = $intervals{$letter};
-            print "The semitone value of the note $letter (from A) is: $semitone\n" if ($verbose == 1);
+            print "The semitone value of the note $letter (from A) is: $semitone\n";
         }
+    }
 
-    }
-    else {
-        print "Something went awry while determining the interval between these notes: @notes\n";
-    }
+#    }
+#    else {
+#        print "Something went awry while determining the interval between these notes: @notes\n";
+#    }
 
 }
 sub interval_test {
+    print "Now entering interval_test subroutine...\n" if ($debugging == 1);
     my @chord; #Initialize array to store all notes we'll generate;
     my $octave = $octaves[int rand($#octaves)]; #Find random octave in our set; range flag will deviate from this value;
 #   print "Inside interval test, the randomly generated octave was: $octave\n";
