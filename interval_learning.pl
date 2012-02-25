@@ -84,7 +84,7 @@ print "This is the content of ALLNOTES_SORTED: @allnotes_sorted\n" if ($debuggin
 
 sub generate_note {
     print "Now entering generate_note subroutine...\n" if ($debugging == 1);
-    my $letter = $letters[int rand($#letters)]; #Find random letter by plugging in a random value no greater than array size
+    my $letter = $allnotes_sorted[int rand($#allnotes_sorted)]; #Find random letter by plugging in a random value no greater than array size
     my $octave = shift || $octaves[int rand($#octaves)]; #If octave declared, use it, else find random letter by plugging in a random value no greater than array size
 #    print "Inside gen_note, octave pulled from func call is $octave\n" if ($verbose == 1);
     my $note = "$letter$octave"; #Stich letter and octave together to make a note to feed into play_note;
@@ -99,46 +99,33 @@ sub determine_interval {
     print "Now entering determine_interval subroutine...\n" if ($debugging == 1);
     my @notes = @{(shift)}; #Wacky shift packaging necessary to handle array supplied during function call;
     my $total = scalar(@notes); #Store total number of notes;
-#if ($total == 1) {
-#        print "There was only one note sounded, therefore no interval can be defined. The note was @notes.\n";
-#    }
-#    elsif ($total == 2) {
-    print "A total of $total notes will be played, specifically: @notes\n" if ($verbose == 1);
-    my @distances; #going to need this in a moment;
-    my @notes_semitones;
-    my @letters_only;
-    print "Notes from main scope looks like this: @notes::determine_interval\n" if ($debugging == 1);
-    print "Notes from main scope looks like this: @notes\n" if ($debugging == 1);
-    foreach my $note (@notes) { #Necessary to declare parent subroutine for proper scope;
-        print "Notes from main scope looks like this: @notes::determine_interval\n" if ($debugging == 1);
-        print "Notes from main scope looks like this: @notes\n";
-        print "
-            
-            WE ARE NOW INSIDE that troublesome foreach loop in determine_interval! Hurray!
-            
-            
-            
-            
-            WHAT TH EHELL?!??!\n";
-        my $letter = $1 if ($note =~ /^\w{1-2}/); #Grab first one or two characters (so A as well as A# is found);
-        my $octave = $1 if ($note =~ /\d{1}$/); #Grab final number, which designates octave frequency
-        print "My letter is: $letter\n";
-        print "My octave for this note is: $octave\n";
-        push @letters_only,$letter;
-        print "Letters_only is looking like this: @letters_only\n" if ($debugging == 1);
-        foreach my $letter (@letters_only) {
-            print "Letters_only is looking like this: @letters_only\n" if ($debugging == 1);
-            print "Now entering letters_only list (@letters_only)...\n";
-            my $semitone = $intervals{$letter};
-            print "The semitone value of the note $letter (from A) is: $semitone\n";
+    if ($total == 1) {
+            print "There was only one note sounded, therefore no interval can be defined. The note was @notes.\n";
         }
+    elsif ($total == 2) {
+        print "A total of $total notes will be played, specifically: @notes\n" if ($verbose == 1);
+        my @distances; #going to need this in a moment;
+        my @notes_semitones;
+        my @letters_only;
+        foreach my $note (@notes) { #Necessary to declare parent subroutine for proper scope;
+            my $letter = $1 if ($note =~ /(^.{1,2})(\d{1})$/i); #Grab first one or two characters (so A as well as A# is found);
+            my $octave = $1 if ($note =~ /(\d{1}$)/); #Grab final number, which designates octave frequency
+            push @letters_only,$letter;
+
+
+            foreach my $letter (@letters_only) {
+                print "This is what ALLNOTES_SORTED looks like again: @allnotes_sorted\n" if ($debugging == 1);
+                my $semitone = grep { $allnotes_sorted[$_] eq $letter } 0..$#allnotes_sorted;
+                print "semntonez: $semitone\n";
+                print "Letters_only is looking like this: @letters_only\n" if ($debugging == 1);
+                print "The semitone value of the note $letter (from A) is: $semitone\n";
+            }
+        }
+
     }
-
-#    }
-#    else {
-#        print "Something went awry while determining the interval between these notes: @notes\n";
-#    }
-
+    else {
+        print "Something went awry while determining the interval between these notes: @notes\n";
+    }
 }
 sub interval_test {
     print "Now entering interval_test subroutine...\n" if ($debugging == 1);
