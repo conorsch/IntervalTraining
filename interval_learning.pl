@@ -61,6 +61,23 @@ my @allnotes; #Could be useful to have an array of all possible notes and draw f
 push(@allnotes,@letters);
 push(@allnotes,@sharps);
 my @allnotes_sorted = sort {lc($a) cmp lc($b) } @allnotes;
+my %allnotes = (
+        "A" =>  0,
+        "A#" =>  1,
+        "B" =>  2,
+        "C" => 3,
+        "4" => "C#",
+        "D"=> 5,
+        6 => "D#",
+        "D#" => 6,
+        "E" => 7,
+        "F" => 8,
+        "F#" => 9,
+        "G" => 10,
+        "G#" => 11,
+        "A" => 12,
+        );
+
 my %intervals = (
         0 => "root",
         1 => "minor second",
@@ -104,21 +121,22 @@ sub determine_interval {
         }
     elsif ($total == 2) {
         print "A total of $total notes will be played, specifically: @notes\n" if ($verbose == 1);
-        my @distances; #going to need this in a moment;
         my @notes_semitones;
         my @letters_only;
         foreach my $note (@notes) { #Necessary to declare parent subroutine for proper scope;
             my $letter = $1 if ($note =~ /(^.{1,2})(\d{1})$/i); #Grab first one or two characters (so A as well as A# is found);
             my $octave = $1 if ($note =~ /(\d{1}$)/); #Grab final number, which designates octave frequency
             push @letters_only,$letter;
+            my $semitone = $allnotes{$letter};# or die "IMPOSSIBLE TO DECLARE SEMITONE\n";
 
 
             foreach my $letter (@letters_only) {
+                chomp $letter;
                 print "This is what ALLNOTES_SORTED looks like again: @allnotes_sorted\n" if ($debugging == 1);
-                my $semitone = grep { $allnotes_sorted[$_] eq $letter } 0..$#allnotes_sorted;
+
+#my $semitone = grep { $allnotes_sorted[$_] eq $letter } 0 .. $#allnotes_sorted;
                 print "semntonez: $semitone\n";
-                print "Letters_only is looking like this: @letters_only\n" if ($debugging == 1);
-                print "The semitone value of the note $letter (from A) is: $semitone\n";
+                print "The semitone value of the note $letter (from A) is: $semitone\n" if ($debugging == 1);
             }
         }
 
