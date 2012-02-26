@@ -68,7 +68,6 @@ my %allnotes = (
         "C" => 3,
         "4" => "C#",
         "D"=> 5,
-        6 => "D#",
         "D#" => 6,
         "E" => 7,
         "F" => 8,
@@ -93,12 +92,8 @@ my %intervals = (
         11 => "major seventh",
         12 => "octave",
         );
-
-#sort(@allnotes);
 print "This is the content of ALLNOTES: @allnotes\n" if ($debugging == 1); 
 print "This is the content of ALLNOTES_SORTED: @allnotes_sorted\n" if ($debugging == 1); 
-
-
 sub generate_note {
     print "Now entering generate_note subroutine...\n" if ($debugging == 1);
     my $letter = $allnotes_sorted[int rand($#allnotes_sorted)]; #Find random letter by plugging in a random value no greater than array size
@@ -108,8 +103,8 @@ sub generate_note {
     return $note; #Pass generated note to whatever called it, for use in play_note;
 }
 sub play_note {
-
     my $note = shift; #Grab desired note from function call, name it accordingly;
+    #Might later add functionlity to customize the `play` command and allow choice of instruments, etc.
     `play -q -n synth $duration pluck $note`; #Play it by calling "play" shell command (requires sox);
 }
 sub determine_interval {
@@ -128,19 +123,12 @@ sub determine_interval {
             my $octave = $1 if ($note =~ /(\d{1}$)/); #Grab final number, which designates octave frequency
             push @letters_only,$letter;
             my $semitone = $allnotes{$letter};# or die "IMPOSSIBLE TO DECLARE SEMITONE\n";
-
-
-            foreach my $letter (@letters_only) {
-                chomp $letter;
-                print "This is what ALLNOTES_SORTED looks like again: @allnotes_sorted\n" if ($debugging == 1);
-
-#my $semitone = grep { $allnotes_sorted[$_] eq $letter } 0 .. $#allnotes_sorted;
-                print "semntonez: $semitone\n";
-                print "The semitone value of the note $letter (from A) is: $semitone\n" if ($debugging == 1);
-            }
+            push @notes_semitones,$semitone; #Store this so we can look at the values later;
         }
-
     }
+    elsif ($total > 2) {
+        print "Current this script does not support identifying chord shapes. Please try again with just 2 notes.\n";
+        return 1;
     else {
         print "Something went awry while determining the interval between these notes: @notes\n";
     }
