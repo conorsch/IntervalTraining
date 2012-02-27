@@ -156,7 +156,7 @@ sub interval_test {
         push @chord,$note;
     }
     my $interval = determine_interval(\@chord);
-    print "The notes are a $interval\n";
+    print "The interval is a $interval\n";
     while (1) { #Loop indefinitely until user declares stop;
         foreach my $note (@chord) { #Look at all generated notes in our "chord" array;
             print "Playing single note $note...\n";
