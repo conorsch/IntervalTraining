@@ -111,8 +111,9 @@ sub determine_interval {
     print "Now entering determine_interval subroutine...\n" if ($debugging == 1);
     my @notes = @{(shift)}; #Wacky shift packaging necessary to handle array supplied during function call;
     my $total = scalar(@notes); #Store total number of notes;
-    if ($total == 1) {
+    if ($total == 1) { #If only one note is to be played, no interval can be named;
             print "There was only one note sounded, therefore no interval can be defined. The note was @notes.\n";
+            return;
         }
     elsif ($total == 2) {
         print "A total of $total notes will be played, specifically: @notes\n" if ($verbose == 1);
@@ -128,14 +129,18 @@ sub determine_interval {
         my $tone1 = $notes_semitones[0];
         my $tone2 = $notes_semitones[1];
         my $distance = abs($tone1 - $tone2);
-        print "$distance is the distance\n";
+        my $direction;
+        if ($tone1 <  $tone2) {
+           $direction = "higher";
+        }
+        else {$direction = "lower";}
         my $interval = $intervals{$distance};
-        print "The interval is $interval\n";
-        return $interval;
+        my $result = "$interval $direction";
+        return $result;
     }
     elsif ($total > 2) {
         print "Current this script does not support identifying chord shapes. Please try again with just 2 notes.\n";
-        return 1;
+        return;
     }
     else {
         print "Something went awry while determining the interval between these notes: @notes\n";
@@ -150,7 +155,8 @@ sub interval_test {
         $note = generate_note($octave);
         push @chord,$note;
     }
-    determine_interval(\@chord);
+    my $interval = determine_interval(\@chord);
+    print "The notes are a $interval\n";
     while (1) { #Loop indefinitely until user declares stop;
         foreach my $note (@chord) { #Look at all generated notes in our "chord" array;
             print "Playing single note $note...\n";
