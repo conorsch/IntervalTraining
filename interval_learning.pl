@@ -125,10 +125,18 @@ sub determine_interval {
             my $semitone = $allnotes{$letter};# or die "IMPOSSIBLE TO DECLARE SEMITONE\n";
             push @notes_semitones,$semitone; #Store this so we can look at the values later;
         }
+        my $tone1 = $notes_semitones[0];
+        my $tone2 = $notes_semitones[1];
+        my $distance = abs($tone1 - $tone2);
+        print "$distance is the distance\n";
+        my $interval = $intervals{$distance};
+        print "The interval is $interval\n";
+        return $interval;
     }
     elsif ($total > 2) {
         print "Current this script does not support identifying chord shapes. Please try again with just 2 notes.\n";
         return 1;
+    }
     else {
         print "Something went awry while determining the interval between these notes: @notes\n";
     }
