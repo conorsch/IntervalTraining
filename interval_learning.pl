@@ -52,31 +52,30 @@ sub check_dependencies {
         }
     }
 }
-my @letters = ("A".."G"); #Initialize array of standard musical notation letters, A through G
-my @flats = qw/Bb Db Eb Gb Ab/; #Initialize array of flats, for use
+my @letters = qw/C D E F G A B/; #Initialize array of standard musical notation letters, A through G
+my @flats = qw/Db Eb Gb Ab Bb/; #Initialize array of flats, for use
 #my @sharps = qw/A# C# D# F# G#/; #Not using quick qw/ declaration because use::strict warns about possible comments;
-my @sharps = ("A#", "C#", "D#", "F#", "G#"); #Initialize array of sharp notations, for a little variety;
-my @octaves = (1..7); #Select possible range of octaves for tone generation; "range" flag adjusts this
+my @sharps = ("C#", "D#", "F#", "G#", "A#"); #Initialize array of sharp notations, for a little variety;
+my @octaves = (2..6); #Select possible range of octaves for tone generation; "range" flag adjusts this
 my @allnotes; #Could be useful to have an array of all possible notes and draw from that for generate_note;
 push(@allnotes,@letters);
 push(@allnotes,@sharps);
 my @allnotes_sorted = sort {lc($a) cmp lc($b) } @allnotes;
 my %allnotes = (
-        "A" =>  0,
-        "A#" =>  1,
-        "B" =>  2,
-        "C" => 3,
-        "C#" => 4,
-        "D"=> 5,
-        "D#" => 6,
-        "E" => 7,
-        "F" => 8,
-        "F#" => 9,
-        "G" => 10,
-        "G#" => 11,
-        "A" => 12,
+        "C" =>  0,
+        "C#" =>  1,
+        "D" =>  2,
+        "D#" => 3,
+        "E" => 4,
+        "F"=> 5,
+        "F#" => 6,
+        "G" => 7,
+        "G#" => 8,
+        "A" => 9,
+        "A#" => 10,
+        "B" => 11,
+        "C" => 12,
         );
-
 my %intervals = (
         0 => "root",
         1 => "minor second",
@@ -92,19 +91,16 @@ my %intervals = (
         11 => "major seventh",
         12 => "octave",
         );
-print "This is the content of ALLNOTES: @allnotes\n" if ($debugging == 1); 
-print "This is the content of ALLNOTES_SORTED: @allnotes_sorted\n" if ($debugging == 1); 
 sub generate_note {
     print "Now entering generate_note subroutine...\n" if ($debugging == 1);
     my $letter = $allnotes_sorted[int rand($#allnotes_sorted)]; #Find random letter by plugging in a random value no greater than array size
     my $octave = shift || $octaves[int rand($#octaves)]; #If octave declared, use it, else find random letter by plugging in a random value no greater than array size
-#    print "Inside gen_note, octave pulled from func call is $octave\n" if ($verbose == 1);
     my $note = "$letter$octave"; #Stich letter and octave together to make a note to feed into play_note;
     return $note; #Pass generated note to whatever called it, for use in play_note;
 }
 sub play_note {
     my $note = shift; #Grab desired note from function call, name it accordingly;
-    #Might later add functionlity to customize the `play` command and allow choice of instruments, etc.
+    #Might later add functionality to customize the `play` command and allow choice of instruments, etc.
     `play -q -n synth $duration pluck $note`; #Play it by calling "play" shell command (requires sox);
 }
 sub determine_interval {
