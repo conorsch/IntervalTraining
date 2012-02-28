@@ -58,9 +58,9 @@ my @flats = qw/Db Eb Gb Ab Bb/; #Initialize array of flats, for use
 my @sharps = ("C#", "D#", "F#", "G#", "A#"); #Initialize array of sharp notations, for a little variety;
 my @octaves = (2..6); #Select possible range of octaves for tone generation; "range" flag adjusts this
 my @allnotes; #Could be useful to have an array of all possible notes and draw from that for generate_note;
-push(@allnotes,@letters);
-push(@allnotes,@sharps);
-my @allnotes_sorted = sort {lc($a) cmp lc($b) } @allnotes;
+push(@allnotes,@letters); #Stock our combined array to have the non-sharps;
+push(@allnotes,@sharps); #Add to our combined array the sharp notes, bringing the total note count to 12 (one octave);
+my @allnotes_sorted = sort {lc($a) cmp lc($b) } @allnotes; #We want to make sure the notes are arranged in sequential order;
 my %allnotes = (
         "C" =>  0,
         "C#" =>  1,
@@ -122,24 +122,24 @@ sub determine_interval {
             my $semitone = $allnotes{$letter};# or die "IMPOSSIBLE TO DECLARE SEMITONE\n";
             push @notes_semitones,$semitone; #Store this so we can look at the values later;
         }
-        my $tone1 = $notes_semitones[0];
-        my $tone2 = $notes_semitones[1];
-        my $distance = abs($tone1 - $tone2);
-        my $direction;
-        if ($tone1 <  $tone2) {
-           $direction = "higher";
+        my $tone1 = $notes_semitones[0]; #Grab the first note of the pair, find its distance in halfsteps from C;
+        my $tone2 = $notes_semitones[1];#Grab the first note of the pair, find its distance in halfsteps from C;
+        my $distance = abs($tone1 - $tone2); #Find absolute value of distance between these notes (doesn't work for root/octave...);
+        my $direction; #Was the second interval lower or higher than the first? 
+        if ($tone1 <  $tone2) { #If the first down was lower
+           $direction = "higher"; #then set direction to "higher";
         }
-        else {$direction = "lower";}
-        my $interval = $intervals{$distance};
-        my $result = "$interval $direction";
-        return $result;
+        else {$direction = "lower";} #Otherwise second interval must have been lower, so set direction to "lower";
+        my $interval = $intervals{$distance}; #Plug the distance (in half steps) into intervals hash, get name of interval;
+        my $result = "$interval $direction"; #Stich together both the interval name and the direction, and that's our product;
+        return $result; #Pass determined interval back to what called for it;
     }
     elsif ($total > 2) {
         print "Current this script does not support identifying chord shapes. Please try again with just 2 notes.\n";
-        return;
+        return; #Exit; more functionality should be added here in the future;
     }
     else {
-        print "Something went awry while determining the interval between these notes: @notes\n";
+        print "Something went awry while determining the interval between these notes: @notes\n"; #This is just a backup; shouldn't ever be displayed;
     }
 }
 sub interval_test {
@@ -147,15 +147,15 @@ sub interval_test {
     my @chord; #Initialize array to store all notes we'll generate;
     my $octave = $octaves[int rand($#octaves)]; #Find random octave in our set; range flag will deviate from this value;
 #   print "Inside interval test, the randomly generated octave was: $octave\n";
-    foreach my $note (1..$chord) {
-        $note = generate_note($octave);
-        push @chord,$note;
+    foreach my $note (1..$chord) { #Perhaps this $chord should be renamed to "$count" so as not to be confused with "@chord"?;
+        $note = generate_note($octave); #Call the generate_note function, with designated octave (which will be the same for both);
+        push @chord,$note; #Store generated note in our chord array;
     }
-    my $interval = determine_interval(\@chord);
-    print "The interval is a $interval\n";
+    my $interval = determine_interval(\@chord); #Pass list of generated notes to determine_interval, store the answer;
+    print "The interval is a $interval\n" if ($verbose == 1); #Add a command line flag for hints? Verbose flag might not be best fit here;
     while (1) { #Loop indefinitely until user declares stop;
         foreach my $note (@chord) { #Look at all generated notes in our "chord" array;
-            print "Playing single note $note...\n";
+            print "Playing single note $note...\n" if ($verbose == 1); #Add a command line flag for hints? Verbose flag might not be best fit here;
             play_note($note); #Play single note from chord;
         }
         if ($chord > 1) { #If number of notes is plural, then prepare to sound all notes simultaneously;
