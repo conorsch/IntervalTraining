@@ -110,9 +110,9 @@ sub determine_interval {
     my @notes = @{(shift)}; #Wacky shift packaging necessary to handle array supplied during function call;
     my $total = scalar(@notes); #Store total number of notes;
     if ($total == 1) { #If only one note is to be played, no interval can be named;
-            print "There was only one note sounded, therefore no interval can be defined. The note was @notes.\n";
-            return;
-        }
+        print "There was only one note sounded, therefore no interval can be defined. The note was @notes.\n";
+        return;
+   }
     elsif ($total == 2) {
         print "A total of $total notes will be played, specifically: @notes\n" if ($verbose == 1);
         my @notes_semitones;
@@ -153,15 +153,9 @@ sub interval_test {
         $note = generate_note($octave); #Call the generate_note function, with designated octave (which will be the same for both);
         push @chord,$note; #Store generated note in our chord array;
     }
-<<<<<<< HEAD
     my $interval = determine_interval(\@chord); #Pass list of generated notes to determine_interval, store the answer;
     print "The interval is a $interval\n" if ($verbose == 1); #Add a command line flag for hints? Verbose flag might not be best fit here;
-    while (1) { #Loop indefinitely until user declares stop;
-=======
-    my $interval = determine_interval(\@chord);
-    print "The interval is a $interval\n";
     playnote: while (1) { #Loop indefinitely until user declares stop;
->>>>>>> keystroke
         foreach my $note (@chord) { #Look at all generated notes in our "chord" array;
             print "Playing single note $note...\n" if ($verbose == 1); #Add a command line flag for hints? Verbose flag might not be best fit here;
             play_note($note); #Play single note from chord;
@@ -181,17 +175,14 @@ sub interval_test {
             print "Sorry, try again.\n";
             next playnote;
         }
-#sleep 5; #Rest a moment before repeating;
-        last playnote;
+        last playnote; #Allow the prorgram to exit cleanly (future versions should allow for more intervals);
     }
 }
 sub get_answer {
     print "Now entering get_keystrokes...\n" if ($debugging == 1);
-#First let's set up variables to catch certain keystrokes (allowing us to ignore all others); 
-#my $answer; #Need a place to store the user response;
-    print "Please enter the interval now: \n";
-    chomp (my $answer = <STDIN>);
-    return $answer;
+    print "Please enter the interval now: \n"; #Instruct the user to enter an attempt at identifying the interval;
+    chomp (my $answer = <STDIN>); #Grab input from command line;
+    return $answer; #Pass user-specified response back to process that called for it;
 
 }
 check_dependencies; #Let's make sure the script can run;
