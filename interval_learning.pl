@@ -6,6 +6,8 @@ use warnings;
 use Getopt::Std; #Allow for command line argument parsing;
 use threads; #Necessary to allow playing of chords (multiple notes simultaneously);
 use threads::shared; #Necessary to allow threads to inherit variables from elsewhere in script;
+use Term::ReadKey;
+no warnings 'threads';
 
 my @dependencies = qw/sox/; #List out all package dependencies here, to check before running actual script;
 my %Options=(); #Create hash for command-line options
@@ -153,7 +155,7 @@ sub interval_test {
     }
     my $interval = determine_interval(\@chord);
     print "The interval is a $interval\n";
-    while (1) { #Loop indefinitely until user declares stop;
+    playnote: while (1) { #Loop indefinitely until user declares stop;
         foreach my $note (@chord) { #Look at all generated notes in our "chord" array;
             print "Playing single note $note...\n";
             play_note($note); #Play single note from chord;
@@ -164,8 +166,27 @@ sub interval_test {
                 threads->create(\&play_note,$note); #Thread necessary to play different notes simultaneously;
             }
         }
-        sleep 5; #Rest a moment before repeating;
+        my $attempt = get_answer();
+        print "The attempt and interval are: $attempt and $interval\n" if ($debugging == 1);
+        if ($attempt =~ m/^$interval$/) {
+            print "You are correct!\n";
+        }
+        else {
+            print "Sorry, try again.\n";
+            next playnote;
+        }
+#sleep 5; #Rest a moment before repeating;
+        last playnote;
     }
+}
+sub get_answer {
+    print "Now entering get_keystrokes...\n" if ($debugging == 1);
+#First let's set up variables to catch certain keystrokes (allowing us to ignore all others); 
+#my $answer; #Need a place to store the user response;
+    print "Please enter the interval now: \n";
+    chomp (my $answer = <STDIN>);
+    return $answer;
+
 }
 check_dependencies; #Let's make sure the script can run;
 interval_test; #Run the meat of the script to do the test;
