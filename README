@@ -20,7 +20,7 @@ To do:
     - Fix octave/root display of "higher" or "lower" 
     - Add multiple interval attempts on single invocation of script (while loops)
     - Add range declaration for octave
-        - Restrict octave range before generate_note call;
+        - Restrict octave range before generate_note call
         - sub determine-interval should support 9ths, 13ths, etc. and onward.
         - Should 9th/2nd be treated interchangeably? Perhaps with a "loose" vs. "strict" mode
-    - Add strict mode, where
+    - Add customization of instrument voicing (current default is guitar "pluck"; add piano, etc.)
