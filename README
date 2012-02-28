@@ -1,5 +1,4 @@
-This Perl script generates musical tones (in pairs or chords) to aid in the memorization of musical intervals.
-This script generates random musical tones and displays their pitch, in order to aid in memorizing intervals.
+This Perl script generates musical tones (in pairs or chords) to aid in the memorization of musical intervals. This script generates random musical tones and displays their pitch, in order to aid in memorizing intervals.
 The user can provide customizations as to the type and number of tones generated, as well as their duration.
 
 Future versions will allow for quiz mode.
@@ -11,3 +10,4 @@ Options supported are as follows:
     -d      duration, choose how long notes ring (in seconds)
     -r      range, how far apart the notes can be, within a range of r octave(s)
     -c      chord, how many notes sound be sounded (defaults to 2)
+    -b      debugging mode, for greater verbosity regarding functionality
