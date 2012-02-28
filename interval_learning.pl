@@ -1,5 +1,6 @@
 #!/usr/bin/perl
-#script to facilitate learning of musical intervals. plays two intervals at random (within two octave range) and tests the user
+#This script is designed to facilitate the learning of musical intervals.
+#It plays (currently only) two intervals at random and asks the user to identify the interval by typing it in.
 use strict;
 use warnings;
 #use diagnostics;
@@ -7,7 +8,7 @@ use Getopt::Std; #Allow for command line argument parsing;
 use threads; #Necessary to allow playing of chords (multiple notes simultaneously);
 use threads::shared; #Necessary to allow threads to inherit variables from elsewhere in script;
 use Term::ReadKey;
-no warnings 'threads';
+no warnings 'threads'; #This doesn't seem to stop the threads warning from chord playing; probably a scoping issue;
 
 my @dependencies = qw/sox/; #List out all package dependencies here, to check before running actual script;
 my %Options=(); #Create hash for command-line options
@@ -18,6 +19,7 @@ my $duration = $Options{d} || 1; #Choose how long individual tones are sounded f
 my $range = $Options{r} || 1; #Determine how far apart notes can be, within a range of r octave(s);
 my $help = $Options{h} || 0; #If -h flag is declared, show help info (which ends in exit);
 my $debugging = $Options{b} || 0; #If -b flag is declared, enable debugging mode (more verbose);
+$verbose = 1 if ($debugging == 1); #Maximum output for debugging, shouldn't have to type both -v and -b flags.
 
 sub do_help { #Display usage information;
     print
@@ -41,6 +43,7 @@ if ($verbose == 1) { #If verbose is enabled, then provide feedback about other f
     print "Notes will be selected from a range of $range octaves.\n";
     print "Up to $chord notes will be sounded together simultaneously.\n";
 }
+#system ("synergyc --yscroll 29 $connect_to"); #Run the connection, using the target machine grabbed as shift;
 sub check_dependencies {
     print "Now entering check_dependencies subroutine...\n" if ($debugging == 1);
     foreach my $package (@dependencies) {
@@ -115,12 +118,10 @@ sub determine_interval {
    }
     elsif ($total == 2) {
         print "A total of $total notes will be played, specifically: @notes\n" if ($verbose == 1);
-        my @notes_semitones;
-        my @letters_only;
+        my @notes_semitones; #Initialize array for storing of ordinal semitone values;
         foreach my $note (@notes) { #Necessary to declare parent subroutine for proper scope;
             my $letter = $1 if ($note =~ /(^.{1,2})(\d{1})$/i); #Grab first one or two characters (so A as well as A# is found);
             my $octave = $1 if ($note =~ /(\d{1}$)/); #Grab final number, which designates octave frequency
-            push @letters_only,$letter;
             my $semitone = $allnotes{$letter};# or die "IMPOSSIBLE TO DECLARE SEMITONE\n";
             push @notes_semitones,$semitone; #Store this so we can look at the values later;
         }
@@ -128,19 +129,28 @@ sub determine_interval {
         my $tone2 = $notes_semitones[1];#Grab the first note of the pair, find its distance in halfsteps from C;
         my $distance = abs($tone1 - $tone2); #Find absolute value of distance between these notes (doesn't work for root/octave...);
         my $direction; #Was the second interval lower or higher than the first? 
-        if ($tone1 <  $tone2) { #If the first down was lower
+        if ($tone1 <  $tone2) { #If the second tone was higher;
            $direction = "higher"; #then set direction to "higher";
         }
-        else {$direction = "lower";} #Otherwise second interval must have been lower, so set direction to "lower";
+        elsif ($tone1 > $tone2) { #If the second down was lower;
+            $direction = "lower"; #then set direction to "lower";
+        }
+        elsif ($tone1 = $tone2) { #If the two notes were the same
+            $direction = ""; #Do nothing. Might need to undef or 
+        }
+        else {
+            print "Unsure how to parse interval. Exiting.\n"; #This shouldn't come up ever, but might help during debugging;
+            return; #Get out of here;
+        }
         my $interval = $intervals{$distance}; #Plug the distance (in half steps) into intervals hash, get name of interval;
         my $result = "$interval $direction"; #Stich together both the interval name and the direction, and that's our product;
         return $result; #Pass determined interval back to what called for it;
     }
-    elsif ($total > 2) {
+    elsif ($total > 2) { #If there are more than two notes fed into determine_interval;
         print "Current this script does not support identifying chord shapes. Please try again with just 2 notes.\n";
         return; #Exit; more functionality should be added here in the future;
     }
-    else {
+    else { #As yet unforeseen corner case;
         print "Something went awry while determining the interval between these notes: @notes\n"; #This is just a backup; shouldn't ever be displayed;
     }
 }
@@ -148,7 +158,7 @@ sub interval_test {
     print "Now entering interval_test subroutine...\n" if ($debugging == 1);
     my @chord; #Initialize array to store all notes we'll generate;
     my $octave = $octaves[int rand($#octaves)]; #Find random octave in our set; range flag will deviate from this value;
-#   print "Inside interval test, the randomly generated octave was: $octave\n";
+    print "Inside interval test, the randomly generated octave was: $octave\n" if ($debugging == 1);
     foreach my $note (1..$chord) { #Perhaps this $chord should be renamed to "$count" so as not to be confused with "@chord"?;
         $note = generate_note($octave); #Call the generate_note function, with designated octave (which will be the same for both);
         push @chord,$note; #Store generated note in our chord array;
@@ -163,7 +173,7 @@ sub interval_test {
         if ($chord > 1) { #If number of notes is plural, then prepare to sound all notes simultaneously;
             print "Playing chord of all notes.. (@chord).\n";
             foreach my $note (@chord) {
-                threads->create(\&play_note,$note); #Thread necessary to play different notes simultaneously;
+                threads->create(\&play_note,$note); #Thread necessary to play different notes simultaneously; They aren't closing neatly, however;
             }
         }
         my $attempt = get_answer();
@@ -183,7 +193,6 @@ sub get_answer {
     print "Please enter the interval now: \n"; #Instruct the user to enter an attempt at identifying the interval;
     chomp (my $answer = <STDIN>); #Grab input from command line;
     return $answer; #Pass user-specified response back to process that called for it;
-
 }
 check_dependencies; #Let's make sure the script can run;
 interval_test; #Run the meat of the script to do the test;
