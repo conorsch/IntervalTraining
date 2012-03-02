@@ -171,7 +171,7 @@ sub interval_test {
             play_note($note); #Play single note from chord;
         }
         if ($chord > 1) { #If number of notes is plural, then prepare to sound all notes simultaneously;
-            print "Playing chord of all notes.. (@chord).\n";
+            print "Playing chord of all notes.. (@chord).\n" if ($verbose == 1);
             foreach my $note (@chord) {
                 threads->create(\&play_note,$note); #Thread necessary to play different notes simultaneously; They aren't closing neatly, however;
             }
@@ -190,7 +190,7 @@ sub interval_test {
 }
 sub get_answer {
     print "Now entering get_keystrokes...\n" if ($debugging == 1);
-    print "Please enter the interval now: \n"; #Instruct the user to enter an attempt at identifying the interval;
+    print "Please enter the interval now: "; #Instruct the user to enter an attempt at identifying the interval;
     chomp (my $answer = <STDIN>); #Grab input from command line;
     return $answer; #Pass user-specified response back to process that called for it;
 }
