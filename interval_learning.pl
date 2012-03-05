@@ -9,6 +9,7 @@ use threads; #Necessary to allow playing of chords (multiple notes simultaneousl
 use threads::shared; #Necessary to allow threads to inherit variables from elsewhere in script;
 use Term::ReadKey;
 no warnings 'threads'; #This doesn't seem to stop the threads warning from chord playing; probably a scoping issue;
+use feature "switch";
 
 my @dependencies = qw/sox/; #List out all package dependencies here, to check before running actual script;
 my %Options=(); #Create hash for command-line options
@@ -178,14 +179,20 @@ sub interval_test {
         }
         my $attempt = get_answer();
         print "The attempt and interval are: $attempt and $interval\n" if ($debugging == 1);
-        if ($attempt =~ m/^$interval$/) {
-            print "You are correct!\n";
+        given ($attempt) {
+            when ($attempt = 0) {
+                print "Playing the notes again.\n";
+                next playnote; #Return to top of while loop;
+            }
+            when ($attempt =~ m/^$interval$/) {
+                print "You are correct!\n";
+            }
+            default {
+                print "Sorry, try again.\n";
+                next playnote; #Return to top of while loop;
+            }
         }
-        else {
-            print "Sorry, try again.\n";
-            next playnote;
-        }
-        last playnote; #Allow the prorgram to exit cleanly (future versions should allow for more intervals);
+        last playnote; #Allow the program to exit cleanly (future versions should allow for more intervals);
     }
 }
 sub get_answer {
